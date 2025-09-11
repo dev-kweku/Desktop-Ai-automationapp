@@ -1,0 +1,40 @@
+    {
+        "intent_mappings": {
+        "open_application": {
+            "description": "Open a specified application",
+            "examples": ["open chrome", "launch calculator", "start notepad"]
+        },
+        "open_folder": {
+            "description": "Open a specified folder",
+            "examples": ["open documents", "show my pictures", "open downloads folder"]
+        },
+        "create_file": {
+            "description": "Create a new file",
+            "examples": ["create a text file", "make a new document", "create file"]
+        },
+        "create_folder": {
+            "description": "Create a new folder",
+            "examples": ["create a new folder", "make a directory", "new folder"]
+        },
+        "delete_file": {
+            "description": "Delete a file",
+            "examples": ["delete file", "remove document", "erase file"]
+        },
+        "delete_folder": {
+            "description": "Delete a folder",
+            "examples": ["delete folder", "remove directory", "erase folder"]
+        },
+        "take_screenshot": {
+            "description": "Take a screenshot",
+            "examples": ["take screenshot", "capture screen", "screenshot"]
+        },
+        "open_browser": {
+            "description": "Open web browser",
+            "examples": ["open browser", "launch web browser", "open internet"]
+        },
+        "search_web": {
+            "description": "Search the web",
+            "examples": ["search for cats", "google python tutorials", "look up weather"]
+        }
+        }
+    }

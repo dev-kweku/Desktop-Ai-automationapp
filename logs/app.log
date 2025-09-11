@@ -1,0 +1,52 @@
+2025-09-11 06:42:34,419 - src.nlp.model_handler - INFO - Pattern-based model handler initialized
+2025-09-11 06:42:34,485 - __main__ - ERROR - Failed to start application: name 'QDateTime' is not defined
+2025-09-11 06:47:03,147 - src.nlp.model_handler - INFO - Pattern-based model handler initialized
+2025-09-11 06:47:04,709 - __main__ - INFO - Desktop AI Assistant started successfully
+2025-09-11 06:47:24,157 - src.nlp.intent_parser - INFO - Parsed command: {'intent': 'take_screenshot', 'confidence': 0.8, 'parameters': {}, 'original_text': 'Take screenshot'}
+2025-09-11 06:47:24,157 - src.executor.action_executor - INFO - Executing intent: take_screenshot with params: {}
+2025-09-11 06:48:00,252 - src.gui.main_window - INFO - Application closing
+2025-09-11 07:36:51,691 - src.nlp.model_handler - INFO - Pattern-based model handler initialized
+2025-09-11 07:36:51,930 - comtypes.client._code_cache - INFO - Could not import comtypes.gen, trying to create it.
+2025-09-11 07:36:51,931 - comtypes.client._code_cache - INFO - Created comtypes.gen directory: 'C:\Users\CALEB ASSAN\Documents\assistant\venv\Lib\site-packages\comtypes\gen'
+2025-09-11 07:36:51,932 - comtypes.client._code_cache - INFO - Writing __init__.py file: 'C:\Users\CALEB ASSAN\Documents\assistant\venv\Lib\site-packages\comtypes\gen\__init__.py'
+2025-09-11 07:36:51,935 - comtypes.client._code_cache - INFO - Using writeable comtypes cache directory: 'C:\Users\CALEB ASSAN\Documents\assistant\venv\Lib\site-packages\comtypes\gen'
+2025-09-11 07:36:52,129 - comtypes.client._generate - INFO - Could not import comtypes.gen._C866CA3A_32F7_11D2_9602_00C04F8EE628_0_5_4: No module named 'comtypes.gen._C866CA3A_32F7_11D2_9602_00C04F8EE628_0_5_4'
+2025-09-11 07:36:52,135 - comtypes.client._generate - INFO - # Generating comtypes.gen._C866CA3A_32F7_11D2_9602_00C04F8EE628_0_5_4
+2025-09-11 07:36:52,386 - comtypes.client._generate - INFO - # Generating comtypes.gen.SpeechLib
+2025-09-11 07:36:52,402 - comtypes.client._generate - INFO - Could not import comtypes.gen._00020430_0000_0000_C000_000000000046_0_2_0: No module named 'comtypes.gen._00020430_0000_0000_C000_000000000046_0_2_0'
+2025-09-11 07:36:52,404 - comtypes.client._generate - INFO - # Generating comtypes.gen._00020430_0000_0000_C000_000000000046_0_2_0
+2025-09-11 07:36:52,435 - comtypes.client._generate - INFO - # Generating comtypes.gen.stdole
+2025-09-11 07:36:53,314 - src.voice.voice_manager - INFO - Adjusting for ambient noise...
+2025-09-11 07:36:54,873 - src.voice.voice_manager - INFO - Voice manager initialized
+2025-09-11 07:36:55,749 - __main__ - INFO - Desktop AI Assistant with Voice started successfully
+2025-09-11 07:37:03,837 - src.voice.voice_manager - INFO - Listening...
+2025-09-11 07:37:09,271 - src.voice.voice_manager - INFO - Processing speech...
+2025-09-11 07:37:10,891 - src.voice.voice_manager - WARNING - Could not understand audio
+2025-09-11 07:37:13,060 - src.voice.voice_manager - INFO - Listening...
+2025-09-11 07:37:15,484 - src.voice.voice_manager - INFO - Processing speech...
+2025-09-11 07:37:18,271 - src.voice.voice_manager - WARNING - Could not understand audio
+2025-09-11 07:37:20,439 - src.voice.voice_manager - INFO - Listening...
+2025-09-11 07:37:25,502 - src.voice.voice_manager - INFO - Processing speech...
+2025-09-11 07:37:26,951 - src.voice.voice_manager - WARNING - Could not understand audio
+2025-09-11 07:37:29,129 - src.voice.voice_manager - INFO - Listening...
+2025-09-11 07:37:33,227 - src.voice.voice_manager - INFO - Processing speech...
+2025-09-11 07:37:34,466 - src.voice.voice_manager - WARNING - Could not understand audio
+2025-09-11 07:37:50,948 - src.gui.main_window - INFO - Application closing
+2025-09-11 08:10:52,155 - src.nlp.model_handler - INFO - Pattern-based model handler initialized
+2025-09-11 08:10:52,321 - comtypes.client._code_cache - INFO - Imported existing <module 'comtypes.gen' from 'C:\\Users\\CALEB ASSAN\\Documents\\assistant\\venv\\Lib\\site-packages\\comtypes\\gen\\__init__.py'>
+2025-09-11 08:10:52,322 - comtypes.client._code_cache - INFO - Using writeable comtypes cache directory: 'C:\Users\CALEB ASSAN\Documents\assistant\venv\Lib\site-packages\comtypes\gen'
+2025-09-11 08:10:52,551 - src.voice.voice_manager - INFO - Adjusting for ambient noise...
+2025-09-11 08:10:53,756 - src.voice.voice_manager - INFO - Voice manager initialized
+2025-09-11 08:10:54,520 - __main__ - INFO - Desktop AI Assistant with Voice started successfully
+2025-09-11 08:11:11,521 - src.nlp.intent_parser - INFO - Parsed command: {'intent': 'unknown', 'confidence': 0.0, 'parameters': {}, 'original_text': 'call'}
+2025-09-11 08:11:11,522 - src.executor.action_executor - INFO - Executing intent: unknown with params: {}
+2025-09-11 08:11:22,835 - src.gui.main_window - INFO - Application closing
+2025-09-11 08:51:51,404 - src.nlp.model_handler - INFO - Pattern-based model handler initialized
+2025-09-11 08:51:51,542 - comtypes.client._code_cache - INFO - Imported existing <module 'comtypes.gen' from 'C:\\Users\\CALEB ASSAN\\Documents\\assistant\\venv\\Lib\\site-packages\\comtypes\\gen\\__init__.py'>
+2025-09-11 08:51:51,542 - comtypes.client._code_cache - INFO - Using writeable comtypes cache directory: 'C:\Users\CALEB ASSAN\Documents\assistant\venv\Lib\site-packages\comtypes\gen'
+2025-09-11 08:51:51,755 - src.voice.voice_manager - INFO - Adjusting for ambient noise...
+2025-09-11 08:51:52,942 - src.voice.voice_manager - INFO - Voice manager initialized
+2025-09-11 08:51:53,484 - __main__ - INFO - Desktop AI Assistant with Voice started successfully
+2025-09-11 08:52:03,822 - src.nlp.intent_parser - INFO - Parsed command: {'intent': 'unknown', 'confidence': 0.0, 'parameters': {}, 'original_text': 'send email'}
+2025-09-11 08:52:03,823 - src.executor.action_executor - INFO - Executing intent: unknown with params: {}
+2025-09-11 08:52:57,932 - src.gui.main_window - INFO - Application closing
