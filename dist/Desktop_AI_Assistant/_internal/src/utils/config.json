@@ -1,0 +1,34 @@
+{
+    "model_name": "pattern_based",
+    "model_cache_dir": "./assets/models",
+    "log_level": "INFO",
+    "log_file": "./logs/app.log",
+    "allowed_directories": [
+        "~/Documents",
+        "~/Downloads",
+        "~/Pictures",
+        "~/Music",
+        "~/Videos"
+    ],
+    "dangerous_commands": [
+        "rm -rf",
+        "format",
+        "del /f /s /q",
+        "shutdown",
+        "restart"
+    ],
+    "application_paths": {
+        "chrome": "C:/Program Files/Google/Chrome/Application/chrome.exe",
+        "firefox": "C:/Program Files/Mozilla Firefox/firefox.exe",
+        "notepad": "C:/Windows/System32/notepad.exe",
+        "calculator": "calc.exe"
+    },
+    "email_address": "",
+    "email_password": "",
+    "smtp_server": "smtp.gmail.com",
+    "smtp_port": 587,
+    "messaging_settings": {
+        "whatsapp_wait_time": 15,
+        "close_browser_after_send": true
+    }
+}
