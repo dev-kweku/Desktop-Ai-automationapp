@@ -82,53 +82,50 @@ class ActionExecutor:
             return f"Application '{app_name}' not configured"
     
     def open_folder(self, params: Dict[str, Any]) -> str:
-    folder_name = params.get("folder", "").lower()
-    folder_map = {
-        "documents": os.path.expanduser("~/Documents"),
-        "downloads": os.path.expanduser("~/Downloads"),
-        "pictures": os.path.expanduser("~/Pictures"),
-        "music": os.path.expanduser("~/Music"),
-        "videos": os.path.expanduser("~/Videos"),
-        "desktop": os.path.expanduser("~/Desktop"),
-        "pics": os.path.expanduser("~/Pictures"), 
-        "pix": os.path.expanduser("~/Pictures"),   
-        "docs": os.path.expanduser("~/Documents"), 
-        "download": os.path.expanduser("~/Downloads"), 
-    }
-    
-    
-    if folder_name.endswith('s'):
-        singular = folder_name[:-1]
-        if singular in folder_map:
-            folder_name = singular
-    
-    if folder_name in folder_map:
-        folder_path = folder_map[folder_name]
-        if os.path.exists(folder_path):
-            try:
-                os.startfile(folder_path)
-                return f"Opened {folder_name} folder"
-            except Exception as e:
-                
-                try:
-                    if os.name == 'nt':  
-                        subprocess.Popen(f'explorer "{folder_path}"')
-                    elif os.name == 'posix':  
-                        subprocess.Popen(['xdg-open', folder_path])
-                    return f"Opened {folder_name} folder"
-                except Exception as e2:
-                    return f"Failed to open {folder_name} folder: {str(e2)}"
-        else:
-            return f"{folder_name} folder doesn't exist at: {folder_path}"
-    else:
+        folder_name = params.get("folder", "").lower()
+        folder_map = {
+            "documents": os.path.expanduser("~/Documents"),
+            "downloads": os.path.expanduser("~/Downloads"),
+            "pictures": os.path.expanduser("~/Pictures"),
+            "music": os.path.expanduser("~/Music"),
+            "videos": os.path.expanduser("~/Videos"),
+            "desktop": os.path.expanduser("~/Desktop"),
+            "pics": os.path.expanduser("~/Pictures"), 
+            "pix": os.path.expanduser("~/Pictures"),   
+            "docs": os.path.expanduser("~/Documents"), 
+            "download": os.path.expanduser("~/Downloads"), 
+        }
         
-        if os.path.exists(folder_name):
-            try:
-                os.startfile(folder_name)
-                return f"Opened folder: {folder_name}"
-            except:
-                return f"Found but couldn't open: {folder_name}"
-        return f"Folder '{folder_name}' not supported. Try: documents, downloads, pictures, music, videos, desktop"
+        if folder_name.endswith('s'):
+            singular = folder_name[:-1]
+            if singular in folder_map:
+                folder_name = singular
+        
+        if folder_name in folder_map:
+            folder_path = folder_map[folder_name]
+            if os.path.exists(folder_path):
+                try:
+                    os.startfile(folder_path)
+                    return f"Opened {folder_name} folder"
+                except Exception as e:
+                    try:
+                        if os.name == 'nt':  
+                            subprocess.Popen(f'explorer "{folder_path}"')
+                        elif os.name == 'posix':  
+                            subprocess.Popen(['xdg-open', folder_path])
+                        return f"Opened {folder_name} folder"
+                    except Exception as e2:
+                        return f"Failed to open {folder_name} folder: {str(e2)}"
+            else:
+                return f"{folder_name} folder doesn't exist at: {folder_path}"
+        else:
+            if os.path.exists(folder_name):
+                try:
+                    os.startfile(folder_name)
+                    return f"Opened folder: {folder_name}"
+                except:
+                    return f"Found but couldn't open: {folder_name}"
+            return f"Folder '{folder_name}' not supported. Try: documents, downloads, pictures, music, videos, desktop"
     
     def create_file(self, params: Dict[str, Any]) -> str:
         filename = params.get("filename", "new_file.txt")
@@ -178,7 +175,7 @@ class ActionExecutor:
             return f"Deleted file: {filename}"
         except Exception as e:
             return f"Failed to delete file: {str(e)}"
-
+    
     def send_whatsapp(self, params: Dict[str, Any]) -> str:
         phone = params.get("phone", "")
         message = params.get("message", "Hello from AI Assistant")
@@ -248,7 +245,7 @@ class ActionExecutor:
         
         return self.phone_integration.make_call(phone_number, message)
     
-    def web_search(self, params: Dict[str, Any]) -> str:
+    def search_web(self, params: Dict[str, Any]) -> str:
         query = params.get("query", "")
         search_url = f"https://www.google.com/search?q={query.replace(' ', '+')}"
         return self.web_controller.open_website(search_url)
@@ -271,7 +268,6 @@ class ActionExecutor:
         
         folder_path = folder_map[folder_name]
         
-    
         if folder_name in ["documents", "downloads", "pictures", "music", "videos"]:
             return f"Cannot delete the {folder_name} folder for security reasons"
         
@@ -283,23 +279,19 @@ class ActionExecutor:
             return f"Failed to delete folder: {str(e)}"
     
     def rename_file(self, params: Dict[str, Any]) -> str:
-        
         return "Rename functionality not yet implemented"
     
     def rename_folder(self, params: Dict[str, Any]) -> str:
-    
         return "Rename functionality not yet implemented"
     
     def take_screenshot(self, params: Dict[str, Any]) -> str:
         try:
-            
+            # Create screenshots directory if it doesn't exist
             pictures_dir = os.path.expanduser("~/Pictures")
             screenshots_dir = os.path.join(pictures_dir, "Screenshots")
-            
-            
             os.makedirs(screenshots_dir, exist_ok=True)
             
-        
+            # Generate filename with timestamp
             from datetime import datetime
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             filename = params.get("filename", f"screenshot_{timestamp}.png")

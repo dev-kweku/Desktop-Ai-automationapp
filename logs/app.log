@@ -50,3 +50,11 @@
 2025-09-11 08:52:03,822 - src.nlp.intent_parser - INFO - Parsed command: {'intent': 'unknown', 'confidence': 0.0, 'parameters': {}, 'original_text': 'send email'}
 2025-09-11 08:52:03,823 - src.executor.action_executor - INFO - Executing intent: unknown with params: {}
 2025-09-11 08:52:57,932 - src.gui.main_window - INFO - Application closing
+2025-09-12 08:27:48,010 - __main__ - ERROR - Failed to start application: name 'true' is not defined
+2025-09-12 09:50:06,971 - src.nlp.model_handler - INFO - Pattern-based model handler initialized
+2025-09-12 09:50:07,216 - comtypes.client._code_cache - INFO - Imported existing <module 'comtypes.gen' from 'C:\\Users\\CALEB ASSAN\\Documents\\assistant\\venv\\Lib\\site-packages\\comtypes\\gen\\__init__.py'>
+2025-09-12 09:50:07,217 - comtypes.client._code_cache - INFO - Using writeable comtypes cache directory: 'C:\Users\CALEB ASSAN\Documents\assistant\venv\Lib\site-packages\comtypes\gen'
+2025-09-12 09:50:07,636 - src.voice.voice_manager - INFO - Adjusting for ambient noise...
+2025-09-12 09:50:08,912 - src.voice.voice_manager - INFO - Voice manager initialized
+2025-09-12 09:50:10,402 - __main__ - INFO - Desktop AI Assistant with Voice started successfully
+2025-09-12 09:50:46,133 - src.gui.main_window - INFO - Application closing

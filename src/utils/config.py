@@ -36,24 +36,33 @@ class Config:
             "smtp_port": 587,
             "messaging_settings": {
                 "whatsapp_wait_time": 15,
-                "close_browser_after_send": true
-            }
+                "close_browser_after_send": True  # Changed from true to True
+            },
+            "twilio_account_sid": "",
+            "twilio_auth_token": "",
+            "twilio_phone_number": ""
         }
         self.config = self.load_config()
     
     def load_config(self) -> Dict[str, Any]:
+        """Load configuration from file or use defaults"""
         if os.path.exists(self.config_path):
             try:
                 with open(self.config_path, 'r') as f:
-                    return {**self.default_config, **json.load(f)}
-            except Exception:
+                    loaded_config = json.load(f)
+                    # JSON.load automatically converts true/false to True/False
+                    return {**self.default_config, **loaded_config}
+            except Exception as e:
+                self.logger.error(f"Error loading config: {str(e)}")
                 return self.default_config
         return self.default_config
     
     def get(self, key: str, default: Any = None) -> Any:
+        """Get config value by key"""
         return self.config.get(key, default)
     
     def save_config(self, new_config: Dict[str, Any]):
+        """Save updated configuration"""
         self.config = {**self.config, **new_config}
         os.makedirs(os.path.dirname(self.config_path), exist_ok=True)
         with open(self.config_path, 'w') as f:

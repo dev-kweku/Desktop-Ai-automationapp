@@ -19,7 +19,7 @@ class ModelHandler:
                 r"open\s+(my\s+)?(documents|downloads|pictures|music|videos|desktop)",
                 r"view\s+(documents|downloads|pictures|music|videos|desktop)",
                 r"go to\s+(documents|downloads|pictures|music|videos|desktop)"
-            ]
+            ],
             "create_file": [
                 r"create\s+(a\s+)?(file|document)",
                 r"make\s+(a\s+)?(file|document)"
@@ -36,8 +36,7 @@ class ModelHandler:
                 r"google\s+(.+)",
                 r"look\s+up\s+(.+)"
             ],
-                        
-                "send_whatsapp": [
+            "send_whatsapp": [
                 r"send whatsapp (?:message|text) to (.+)",
                 r"whatsapp (.+)",
                 r"message (.+) on whatsapp",
@@ -53,13 +52,7 @@ class ModelHandler:
                 r"send message to (.+)",
                 r"text (.+)",
                 r"message (.+)"
-            ]
-            "make_call": [
-                r"call (.+)",
-                r"phone call to (.+)",
-                r"dial (.+)"
-            ]
-
+            ],
             "make_phone_call": [
                 r"call (.+)",
                 r"phone call to (.+)",
@@ -73,7 +66,6 @@ class ModelHandler:
                 r"phone (.+) message (.+)",
                 r"dial (.+) and tell them (.+)"
             ]
-        
         }
         self.logger.info("Pattern-based model handler initialized")
     
@@ -100,7 +92,11 @@ class ModelHandler:
                 "create_file": ["create", "make", "new"],
                 "take_screenshot": ["screenshot", "capture"],
                 "open_browser": ["browser", "chrome", "firefox", "internet"],
-                "search_web": ["search", "google", "look up"]
+                "search_web": ["search", "google", "look up"],
+                "send_whatsapp": ["whatsapp", "message"],
+                "send_email": ["email", "mail"],
+                "send_message": ["message", "text", "contact"],
+                "make_phone_call": ["call", "phone", "dial", "ring"]
             }
             
             for intent, words in keywords.items():
@@ -130,30 +126,32 @@ class ModelHandler:
                         break
             
             elif intent == "open_folder":
-    # Try to detect folder name with better pattern matching
-    folders = ["documents", "downloads", "pictures", "music", "videos", "desktop", "pics", "pix", "docs", "download"]
-    
-    # Direct match
-    for folder in folders:
-        if folder in text_lower:
-            params["folder"] = folder
-            break
-    
-    # Pattern matching
-    if "folder" not in params:
-        folder_patterns = [
-            r"open\s+(documents|downloads|pictures|music|videos|desktop|pics|pix|docs|download)",
-            r"show\s+(my\s+)?(documents|downloads|pictures|music|videos|desktop)",
-            r"view\s+(documents|downloads|pictures|music|videos|desktop)"
-        ]
-        
-        for pattern in folder_patterns:
-            match = re.search(pattern, text_lower)
-            if match:
-                # Get the captured group (handle different pattern formats)
-                folder_name = match.group(1) if match.group(1) else match.group(2)
-                params["folder"] = folder_name.lower()
-                break
+                # Try to detect folder name with better pattern matching
+                folders = ["documents", "downloads", "pictures", "music", "videos", "desktop", "pics", "pix", "docs", "download"]
+                
+                # Direct match
+                for folder in folders:
+                    if folder in text_lower:
+                        params["folder"] = folder
+                        break
+                
+                # Pattern matching
+                if "folder" not in params:
+                    folder_patterns = [
+                        r"open\s+(documents|downloads|pictures|music|videos|desktop|pics|pix|docs|download)",
+                        r"show\s+(my\s+)?(documents|downloads|pictures|music|videos|desktop)",
+                        r"view\s+(documents|downloads|pictures|music|videos|desktop)"
+                    ]
+                    
+                    for pattern in folder_patterns:
+                        match = re.search(pattern, text_lower)
+                        if match:
+                            # Get the captured group (handle different pattern formats)
+                            if match.lastindex >= 1:
+                                folder_name = match.group(1) if match.group(1) else (match.group(2) if match.lastindex >= 2 else None)
+                                if folder_name:
+                                    params["folder"] = folder_name.lower()
+                                    break
             
             elif intent == "search_web":
                 # Extract search query
@@ -163,74 +161,114 @@ class ModelHandler:
                         query = match.group(1).strip()
                         params["query"] = query
                         break
-
-                    elif intent == "send_whatsapp":
-            # Extract phone number and message
-            phone_patterns = [
-                r"to\s+([+\d\s]+)",
-                r"whatsapp\s+([+\d\s]+)",
-                r"message\s+([+\d\s]+)"
-            ]
             
-            for pattern in phone_patterns:
-                match = re.search(pattern, text_lower)
+            elif intent == "send_whatsapp":
+                # Extract phone number and message
+                phone_patterns = [
+                    r"to\s+([+\d\s]+)",
+                    r"whatsapp\s+([+\d\s]+)",
+                    r"message\s+([+\d\s]+)"
+                ]
+                
+                for pattern in phone_patterns:
+                    match = re.search(pattern, text_lower)
+                    if match and match.groups():
+                        params["phone"] = match.group(1).strip()
+                        break
+                
+                # Extract message content
+                message_patterns = [
+                    r"message\s+(.+)",
+                    r"say\s+(.+)",
+                    r"text\s+(.+)"
+                ]
+                
+                for pattern in message_patterns:
+                    match = re.search(pattern, text_lower)
+                    if match and match.groups():
+                        params["message"] = match.group(1).strip()
+                        break
+                
+                if "message" not in params:
+                    params["message"] = "Hello from your AI assistant!"
+            
+            elif intent == "send_email":
+                # Extract email address
+                email_pattern = r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}'
+                match = re.search(email_pattern, text_lower)
                 if match:
-                    params["phone"] = match.group(1).strip()
-                    break
+                    params["email"] = match.group(0)
+                
+                # Extract subject and body if mentioned
+                subject_match = re.search(r"subject\s+(.+)", text_lower)
+                if subject_match and subject_match.groups():
+                    params["subject"] = subject_match.group(1).strip()
+                
+                body_match = re.search(r"body\s+(.+)", text_lower)
+                if body_match and body_match.groups():
+                    params["body"] = body_match.group(1).strip()
             
-            # Extract message content
-            message_patterns = [
-                r"message\s+(.+)",
-                r"say\s+(.+)",
-                r"text\s+(.+)"
-            ]
+            elif intent == "send_message":
+                # Generic message sending
+                message_patterns = [
+                    r"to\s+([+\d\s]+)",
+                    r"message\s+([+\d\s]+)",
+                    r"text\s+([+\d\s]+)"
+                ]
+                
+                for pattern in message_patterns:
+                    match = re.search(pattern, text_lower)
+                    if match and match.groups():
+                        params["recipient"] = match.group(1).strip()
+                        break
+                
+                content_match = re.search(r"say\s+(.+)", text_lower)
+                if content_match and content_match.groups():
+                    params["message"] = content_match.group(1).strip()
             
-            for pattern in message_patterns:
-                match = re.search(pattern, text_lower)
-                if match:
-                    params["message"] = match.group(1).strip()
-                    break
+            elif intent == "make_phone_call":
+                # Extract phone number
+                phone_patterns = [
+                    r"to\s+([+\d\s]+)",
+                    r"call\s+([+\d\s]+)",
+                    r"phone\s+([+\d\s]+)",
+                    r"dial\s+([+\d\s]+)"
+                ]
+                
+                for pattern in phone_patterns:
+                    match = re.search(pattern, text_lower)
+                    if match and match.groups():
+                        params["phone"] = match.group(1).strip()
+                        break
             
-            if "message" not in params:
-                params["message"] = "Hello from your AI assistant!"
+            elif intent == "make_phone_call_with_message":
+                # Extract phone number and message
+                phone_patterns = [
+                    r"call\s+([+\d\s]+)\s+and say",
+                    r"phone\s+([+\d\s]+)\s+message",
+                    r"dial\s+([+\d\s]+)\s+and tell them"
+                ]
+                
+                for pattern in phone_patterns:
+                    match = re.search(pattern, text_lower)
+                    if match and match.groups():
+                        params["phone"] = match.group(1).strip()
+                        break
+                
+                # Extract message
+                message_patterns = [
+                    r"and say\s+(.+)",
+                    r"message\s+(.+)",
+                    r"and tell them\s+(.+)"
+                ]
+                
+                for pattern in message_patterns:
+                    match = re.search(pattern, text_lower)
+                    if match and match.groups():
+                        params["message"] = match.group(1).strip()
+                        break
             
             return params
-
-            elif intent == "send_email":
-            # Extract email address
-            email_pattern = r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}'
-            match = re.search(email_pattern, text_lower)
-            if match:
-                params["email"] = match.group(0)
-            
-            # Extract subject and body if mentioned
-            subject_match = re.search(r"subject\s+(.+)", text_lower)
-            if subject_match:
-                params["subject"] = subject_match.group(1).strip()
-            
-            body_match = re.search(r"body\s+(.+)", text_lower)
-            if body_match:
-                params["body"] = body_match.group(1).strip()
-        
-        elif intent == "send_message":
-            # Generic message sending
-            message_patterns = [
-                r"to\s+([+\d\s]+)",
-                r"message\s+([+\d\s]+)",
-                r"text\s+([+\d\s]+)"
-            ]
-            
-            for pattern in message_patterns:
-                match = re.search(pattern, text_lower)
-                if match:
-                    params["recipient"] = match.group(1).strip()
-                    break
-            
-            content_match = re.search(r"say\s+(.+)", text_lower)
-            if content_match:
-                params["message"] = content_match.group(1).strip()
-        
-        return params
             
         except Exception as e:
             self.logger.error(f"Error extracting parameters: {str(e)}")

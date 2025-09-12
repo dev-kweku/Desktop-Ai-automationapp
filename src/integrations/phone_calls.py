@@ -1,6 +1,8 @@
 import logging
 import re
-from typing import Dict, Any, Optional
+import subprocess
+import os
+from typing import Dict, Any, Optional, Tuple
 from twilio.rest import Client
 from twilio.base.exceptions import TwilioRestException
 
@@ -81,9 +83,6 @@ class PhoneCallIntegration:
     def make_call_skype(self, phone_number: str) -> str:
         """Make call using Skype (if installed)"""
         try:
-            import subprocess
-            import os
-            
             # Skype URI scheme for calls
             skype_uri = f"skype:{phone_number}?call"
             
@@ -101,8 +100,6 @@ class PhoneCallIntegration:
     def make_call_android(self, phone_number: str) -> str:
         """Make call using ADB (requires connected Android device)"""
         try:
-            import subprocess
-            
             # Check if ADB is available
             result = subprocess.run(['adb', 'devices'], capture_output=True, text=True)
             if 'device' not in result.stdout:
