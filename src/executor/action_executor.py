@@ -8,16 +8,16 @@ from src.utils.security import SecurityManager
 from src.utils.config import Config
 from src.integrations.messaging import MessagingIntegration
 from src.integrations.web_control import WebController
-from src.integrations.phone_control import PhoneIntegration
+from src.integrations.phone_calls import PhoneCallIntegration  
 
 class ActionExecutor:
     def __init__(self, config: Config):
         self.logger = logging.getLogger(__name__)
         self.config = config
         self.security = SecurityManager(config)
-        self.messaging = MessagingIntegration()
+        self.messaging = MessagingIntegration(config) 
         self.web_controller = WebController()
-        self.phone_integration = PhoneIntegration()
+        self.phone_integration = PhoneCallIntegration(config)  
     
     def execute(self, intent_data: Dict[str, Any]) -> str:
         """Execute action based on parsed intent"""
@@ -49,12 +49,18 @@ class ActionExecutor:
                 return self.open_browser(params)
             elif intent == "search_web":
                 return self.search_web(params)
-                elif intent == "send_whatsapp":
+            elif intent == "send_whatsapp":
                 return self.send_whatsapp(params)
             elif intent == "send_email":
                 return self.send_email(params)
-            elif intent == "make_call":
-                return self.make_call(params)
+            elif intent == "send_message":
+                return self.send_message(params)
+            elif intent == "make_phone_call":
+                return self.make_phone_call(params)
+            elif intent == "make_phone_call_with_message":
+                return self.make_phone_call_with_message(params)
+            elif intent == "schedule_message":
+                return self.schedule_message(params)
             else:
                 return "Sorry, I didn't understand that command."
                 
@@ -76,25 +82,53 @@ class ActionExecutor:
             return f"Application '{app_name}' not configured"
     
     def open_folder(self, params: Dict[str, Any]) -> str:
-        folder_name = params.get("folder", "")
-        folder_map = {
-            "documents": os.path.expanduser("~/Documents"),
-            "downloads": os.path.expanduser("~/Downloads"),
-            "pictures": os.path.expanduser("~/Pictures"),
-            "music": os.path.expanduser("~/Music"),
-            "videos": os.path.expanduser("~/Videos"),
-            "desktop": os.path.expanduser("~/Desktop")
-        }
-        
-        if folder_name in folder_map:
-            folder_path = folder_map[folder_name]
-            if os.path.exists(folder_path):
+    folder_name = params.get("folder", "").lower()
+    folder_map = {
+        "documents": os.path.expanduser("~/Documents"),
+        "downloads": os.path.expanduser("~/Downloads"),
+        "pictures": os.path.expanduser("~/Pictures"),
+        "music": os.path.expanduser("~/Music"),
+        "videos": os.path.expanduser("~/Videos"),
+        "desktop": os.path.expanduser("~/Desktop"),
+        "pics": os.path.expanduser("~/Pictures"), 
+        "pix": os.path.expanduser("~/Pictures"),   
+        "docs": os.path.expanduser("~/Documents"), 
+        "download": os.path.expanduser("~/Downloads"), 
+    }
+    
+    
+    if folder_name.endswith('s'):
+        singular = folder_name[:-1]
+        if singular in folder_map:
+            folder_name = singular
+    
+    if folder_name in folder_map:
+        folder_path = folder_map[folder_name]
+        if os.path.exists(folder_path):
+            try:
                 os.startfile(folder_path)
                 return f"Opened {folder_name} folder"
-            else:
-                return f"{folder_name} folder doesn't exist"
+            except Exception as e:
+                
+                try:
+                    if os.name == 'nt':  
+                        subprocess.Popen(f'explorer "{folder_path}"')
+                    elif os.name == 'posix':  
+                        subprocess.Popen(['xdg-open', folder_path])
+                    return f"Opened {folder_name} folder"
+                except Exception as e2:
+                    return f"Failed to open {folder_name} folder: {str(e2)}"
         else:
-            return "Specified folder not supported"
+            return f"{folder_name} folder doesn't exist at: {folder_path}"
+    else:
+        
+        if os.path.exists(folder_name):
+            try:
+                os.startfile(folder_name)
+                return f"Opened folder: {folder_name}"
+            except:
+                return f"Found but couldn't open: {folder_name}"
+        return f"Folder '{folder_name}' not supported. Try: documents, downloads, pictures, music, videos, desktop"
     
     def create_file(self, params: Dict[str, Any]) -> str:
         filename = params.get("filename", "new_file.txt")
@@ -148,21 +182,71 @@ class ActionExecutor:
     def send_whatsapp(self, params: Dict[str, Any]) -> str:
         phone = params.get("phone", "")
         message = params.get("message", "Hello from AI Assistant")
+        scheduled = params.get("scheduled", False)
         
         if not phone:
-            return "Please specify a phone number to send WhatsApp message to."
+            return "Please specify a phone number to send WhatsApp message to. Example: 'Send WhatsApp to +233123456789'"
         
-        return self.messaging.send_whatsapp_message(phone, message)
+        return self.messaging.send_whatsapp_message(phone, message, scheduled)
     
     def send_email(self, params: Dict[str, Any]) -> str:
-        recipient = params.get("email", "")
+        email = params.get("email", "")
         subject = params.get("subject", "Message from AI Assistant")
         body = params.get("body", "This message was sent by your AI assistant.")
-        return self.messaging.send_email(recipient, subject, body)
+        
+        if not email:
+            return "Please specify an email address to send message to. Example: 'Send email to example@gmail.com'"
+        
+        return self.messaging.send_email(email, subject, body)
     
-    def make_call(self, params: Dict[str, Any]) -> str:
+    def send_message(self, params: Dict[str, Any]) -> str:
+        recipient = params.get("recipient", "")
+        message = params.get("message", "Hello from AI Assistant")
+        
+        if not recipient:
+            return "Please specify a recipient for the message."
+        
+        # Extract contact info using the enhanced method
+        phone, email, contact_type = self.messaging.extract_contact_info(recipient)
+        
+        if contact_type == "phone":
+            return self.messaging.send_whatsapp_message(phone, message)
+        elif contact_type == "email":
+            return self.messaging.send_email(email, "Message from AI Assistant", message)
+        else:
+            return "Please specify a valid phone number or email address."
+    
+    def schedule_message(self, params: Dict[str, Any]) -> str:
+        recipient = params.get("recipient", "")
+        message = params.get("message", "Hello from AI Assistant")
+        
+        if not recipient:
+            return "Please specify a recipient for the scheduled message."
+        
+        phone, email, contact_type = self.messaging.extract_contact_info(recipient)
+        
+        if contact_type == "phone":
+            return self.messaging.send_whatsapp_message(phone, message, scheduled=True)
+        else:
+            return "Scheduling is currently only available for WhatsApp messages."
+    
+    def make_phone_call(self, params: Dict[str, Any]) -> str:
         phone_number = params.get("phone", "")
+        if not phone_number:
+            return "Please specify a phone number to call."
+        
         return self.phone_integration.make_call(phone_number)
+    
+    def make_phone_call_with_message(self, params: Dict[str, Any]) -> str:
+        phone_number = params.get("phone", "")
+        message = params.get("message", "")
+        
+        if not phone_number:
+            return "Please specify a phone number to call."
+        if not message:
+            return "Please specify a message to deliver."
+        
+        return self.phone_integration.make_call(phone_number, message)
     
     def web_search(self, params: Dict[str, Any]) -> str:
         query = params.get("query", "")
@@ -187,7 +271,7 @@ class ActionExecutor:
         
         folder_path = folder_map[folder_name]
         
-        # Safety check - don't allow deleting actual system folders
+    
         if folder_name in ["documents", "downloads", "pictures", "music", "videos"]:
             return f"Cannot delete the {folder_name} folder for security reasons"
         
@@ -199,26 +283,37 @@ class ActionExecutor:
             return f"Failed to delete folder: {str(e)}"
     
     def rename_file(self, params: Dict[str, Any]) -> str:
-        # This would need more sophisticated parameter extraction
+        
         return "Rename functionality not yet implemented"
     
     def rename_folder(self, params: Dict[str, Any]) -> str:
-        # This would need more sophisticated parameter extraction
+    
         return "Rename functionality not yet implemented"
     
     def take_screenshot(self, params: Dict[str, Any]) -> str:
         try:
-            screenshots_dir = os.path.expanduser("~/Pictures/Screenshots")
+            
+            pictures_dir = os.path.expanduser("~/Pictures")
+            screenshots_dir = os.path.join(pictures_dir, "Screenshots")
+            
+            
             os.makedirs(screenshots_dir, exist_ok=True)
             
-            filename = params.get("filename", "screenshot.png")
+        
+            from datetime import datetime
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            filename = params.get("filename", f"screenshot_{timestamp}.png")
             filepath = os.path.join(screenshots_dir, filename)
             
+            # Take screenshot
             screenshot = pyautogui.screenshot()
             screenshot.save(filepath)
             
-            return f"Screenshot saved as {filename}"
+            # Return the full path so user knows where it was saved
+            return f"Screenshot saved as: {filepath}"
+            
         except Exception as e:
+            self.logger.error(f"Failed to take screenshot: {str(e)}")
             return f"Failed to take screenshot: {str(e)}"
     
     def open_browser(self, params: Dict[str, Any]) -> str:

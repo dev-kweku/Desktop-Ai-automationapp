@@ -14,9 +14,12 @@ class ModelHandler:
                 r"start\s+(.+)$"
             ],
             "open_folder": [
-                r"open\s+(documents|downloads|pictures|music|videos|desktop)",
-                r"show\s+(my\s+)?(documents|downloads|pictures|music|videos|desktop)"
-            ],
+                r"open\s+(documents|downloads|pictures|music|videos|desktop|pics|pix|docs|download)",
+                r"show\s+(my\s+)?(documents|downloads|pictures|music|videos|desktop)",
+                r"open\s+(my\s+)?(documents|downloads|pictures|music|videos|desktop)",
+                r"view\s+(documents|downloads|pictures|music|videos|desktop)",
+                r"go to\s+(documents|downloads|pictures|music|videos|desktop)"
+            ]
             "create_file": [
                 r"create\s+(a\s+)?(file|document)",
                 r"make\s+(a\s+)?(file|document)"
@@ -55,6 +58,20 @@ class ModelHandler:
                 r"call (.+)",
                 r"phone call to (.+)",
                 r"dial (.+)"
+            ]
+
+            "make_phone_call": [
+                r"call (.+)",
+                r"phone call to (.+)",
+                r"dial (.+)",
+                r"ring (.+)",
+                r"make call to (.+)",
+                r"call number (.+)"
+            ],
+            "make_phone_call_with_message": [
+                r"call (.+) and say (.+)",
+                r"phone (.+) message (.+)",
+                r"dial (.+) and tell them (.+)"
             ]
         
         }
@@ -113,13 +130,30 @@ class ModelHandler:
                         break
             
             elif intent == "open_folder":
-                # Extract folder name
-                for pattern in self.patterns["open_folder"]:
-                    match = re.search(pattern, text_lower)
-                    if match and match.groups():
-                        folder_name = match.group(1) if match.group(1) else match.group(2)
-                        params["folder"] = folder_name
-                        break
+    # Try to detect folder name with better pattern matching
+    folders = ["documents", "downloads", "pictures", "music", "videos", "desktop", "pics", "pix", "docs", "download"]
+    
+    # Direct match
+    for folder in folders:
+        if folder in text_lower:
+            params["folder"] = folder
+            break
+    
+    # Pattern matching
+    if "folder" not in params:
+        folder_patterns = [
+            r"open\s+(documents|downloads|pictures|music|videos|desktop|pics|pix|docs|download)",
+            r"show\s+(my\s+)?(documents|downloads|pictures|music|videos|desktop)",
+            r"view\s+(documents|downloads|pictures|music|videos|desktop)"
+        ]
+        
+        for pattern in folder_patterns:
+            match = re.search(pattern, text_lower)
+            if match:
+                # Get the captured group (handle different pattern formats)
+                folder_name = match.group(1) if match.group(1) else match.group(2)
+                params["folder"] = folder_name.lower()
+                break
             
             elif intent == "search_web":
                 # Extract search query
