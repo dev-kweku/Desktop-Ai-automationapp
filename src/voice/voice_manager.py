@@ -19,13 +19,15 @@ class VoiceManager(QObject):
         self.config = config
         self.recognizer = sr.Recognizer()
         self.microphone = sr.Microphone()
-        self.tts_engine = pyttsx3.init()
+        self.tts_engine = None  # Initialize as None, will be created when needed
         self.command_queue = Queue()
         self.is_listening = False
         self.stop_listening = False
+        self.is_speaking = False
+        self.tts_lock = threading.Lock()  # Lock for TTS operations
         
-        # Configure TTS engine
-        self.setup_tts()
+        # Configure TTS engine on first use
+        self._initialize_tts()
         
         # Adjust for ambient noise
         try:
@@ -37,23 +39,61 @@ class VoiceManager(QObject):
             self.logger.error(f"Error adjusting for ambient noise: {str(e)}")
             self.error_occurred.emit(f"Microphone error: {str(e)}")
     
-    def setup_tts(self):
-        """Configure text-to-speech engine"""
+    def _initialize_tts(self):
+        """Initialize TTS engine when first needed"""
         try:
-            voices = self.tts_engine.getProperty('voices')
-            if voices:
-                self.tts_engine.setProperty('voice', voices[0].id)  # Use first available voice
-            self.tts_engine.setProperty('rate', 150)  # Speed percent
-            self.tts_engine.setProperty('volume', 0.9)  # Volume 0-1
+            if self.tts_engine is None:
+                self.tts_engine = pyttsx3.init()
+                voices = self.tts_engine.getProperty('voices')
+                if voices:
+                    self.tts_engine.setProperty('voice', voices[0].id)  # Use first available voice
+                self.tts_engine.setProperty('rate', 150)  # Speed percent
+                self.tts_engine.setProperty('volume', 0.9)  # Volume 0-1
         except Exception as e:
             self.logger.error(f"Error setting up TTS: {str(e)}")
     
     def speak(self, text):
-        """Convert text to speech"""
+        """Convert text to speech with proper thread management"""
+        if not text or self.is_speaking:
+            return
+            
         try:
+            with self.tts_lock:
+                self.is_speaking = True
+                
             def speak_thread():
-                self.tts_engine.say(text)
-                self.tts_engine.runAndWait()
+                try:
+                    self._initialize_tts()  # Ensure TTS is initialized
+                    
+                    # Create a new engine instance for each speech to avoid run loop issues
+                    engine = pyttsx3.init()
+                    voices = engine.getProperty('voices')
+                    if voices:
+                        engine.setProperty('voice', voices[0].id)
+                    engine.setProperty('rate', 150)
+                    engine.setProperty('volume', 0.9)
+                    
+                    engine.say(text)
+                    engine.runAndWait()
+                    
+                except RuntimeError as e:
+                    if "run loop already started" in str(e):
+                        self.logger.warning("TTS run loop conflict, retrying with new engine")
+                        # Try alternative approach
+                        import os
+                        if os.name == 'nt':  # Windows
+                            os.system(f'powershell -Command "Add-Type -AssemblyName System.Speech; (New-Object System.Speech.Synthesis.SpeechSynthesizer).Speak(\'{text}\')"')
+                        else:
+                            self.logger.error(f"TTS error on non-Windows system: {str(e)}")
+                    else:
+                        self.logger.error(f"Error in text-to-speech: {str(e)}")
+                        self.error_occurred.emit(f"TTS Error: {str(e)}")
+                except Exception as e:
+                    self.logger.error(f"Error in text-to-speech: {str(e)}")
+                    self.error_occurred.emit(f"TTS Error: {str(e)}")
+                finally:
+                    with self.tts_lock:
+                        self.is_speaking = False
             
             # Run in separate thread to avoid blocking GUI
             thread = threading.Thread(target=speak_thread)
@@ -61,8 +101,9 @@ class VoiceManager(QObject):
             thread.start()
             
         except Exception as e:
-            self.logger.error(f"Error in text-to-speech: {str(e)}")
-            self.error_occurred.emit(f"TTS Error: {str(e)}")
+            self.logger.error(f"Error starting speech thread: {str(e)}")
+            with self.tts_lock:
+                self.is_speaking = False
     
     def listen(self):
         """Listen for voice command and return transcribed text"""

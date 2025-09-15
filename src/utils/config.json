@@ -21,7 +21,18 @@
         "chrome": "C:/Program Files/Google/Chrome/Application/chrome.exe",
         "firefox": "C:/Program Files/Mozilla Firefox/firefox.exe",
         "notepad": "C:/Windows/System32/notepad.exe",
-        "calculator": "calc.exe"
+        "calculator": "calc.exe",
+        "cmd": "C:/Windows/System32/cmd.exe",
+        "powershell": "C:/Windows/System32/WindowsPowerShell/v1.0/powershell.exe",
+        "obsidian": "C:/Users/CALEB ASSAN/AppData/Local/Obsidian/Obsidian.exe"
+    },
+    "folder_paths": {
+        "documents": "C:/Users/CALEB ASSAN/Documents",
+        "downloads": "C:/Users/CALEB ASSAN/Downloads",
+        "pictures": "C:/Users/CALEB ASSAN/Pictures",
+        "music": "C:/Users/CALEB ASSAN/Music",
+        "videos": "C:/Users/CALEB ASSAN/Videos",
+        "desktop": "C:/Users/CALEB ASSAN/Desktop"
     },
     "email_address": "",
     "email_password": "",

@@ -69,12 +69,12 @@ class ActionExecutor:
             return f"Error: {str(e)}"
     
     def open_application(self, params: Dict[str, Any]) -> str:
-        app_name = params.get("application", "")
+        app_name = params.get("application", "").lower()
         app_paths = self.config.get("application_paths", {})
         
         if app_name in app_paths:
             try:
-                subprocess.Popen(app_paths[app_name])
+                subprocess.Popen([app_paths[app_name]])
                 return f"Opened {app_name}"
             except Exception as e:
                 return f"Failed to open {app_name}: {str(e)}"
@@ -83,49 +83,50 @@ class ActionExecutor:
     
     def open_folder(self, params: Dict[str, Any]) -> str:
         folder_name = params.get("folder", "").lower()
-        folder_map = {
-            "documents": os.path.expanduser("~/Documents"),
-            "downloads": os.path.expanduser("~/Downloads"),
-            "pictures": os.path.expanduser("~/Pictures"),
-            "music": os.path.expanduser("~/Music"),
-            "videos": os.path.expanduser("~/Videos"),
-            "desktop": os.path.expanduser("~/Desktop"),
-            "pics": os.path.expanduser("~/Pictures"), 
-            "pix": os.path.expanduser("~/Pictures"),   
-            "docs": os.path.expanduser("~/Documents"), 
-            "download": os.path.expanduser("~/Downloads"), 
-        }
         
+        # Get folder paths from config
+        folder_paths = self.config.get("folder_paths", {})
+        
+        # Expand environment variables in paths
+        expanded_paths = {}
+        for name, path in folder_paths.items():
+            expanded_paths[name] = os.path.expandvars(path)
+        
+        # Handle plural forms (e.g., "documents" -> "document")
         if folder_name.endswith('s'):
             singular = folder_name[:-1]
-            if singular in folder_map:
+            if singular in expanded_paths:
                 folder_name = singular
         
-        if folder_name in folder_map:
-            folder_path = folder_map[folder_name]
+        # Check if folder is in configured paths
+        if folder_name in expanded_paths:
+            folder_path = expanded_paths[folder_name]
             if os.path.exists(folder_path):
                 try:
-                    os.startfile(folder_path)
+                    if os.name == 'nt':  # Windows
+                        subprocess.Popen(['explorer', folder_path])
+                    else:  # macOS/Linux
+                        subprocess.Popen(['xdg-open', folder_path])
                     return f"Opened {folder_name} folder"
                 except Exception as e:
-                    try:
-                        if os.name == 'nt':  
-                            subprocess.Popen(f'explorer "{folder_path}"')
-                        elif os.name == 'posix':  
-                            subprocess.Popen(['xdg-open', folder_path])
-                        return f"Opened {folder_name} folder"
-                    except Exception as e2:
-                        return f"Failed to open {folder_name} folder: {str(e2)}"
+                    return f"Failed to open {folder_name} folder: {str(e)}"
             else:
                 return f"{folder_name} folder doesn't exist at: {folder_path}"
-        else:
-            if os.path.exists(folder_name):
-                try:
-                    os.startfile(folder_name)
-                    return f"Opened folder: {folder_name}"
-                except:
-                    return f"Found but couldn't open: {folder_name}"
-            return f"Folder '{folder_name}' not supported. Try: documents, downloads, pictures, music, videos, desktop"
+        
+        # Fallback: check if folder_name is a direct path
+        if os.path.exists(folder_name):
+            try:
+                if os.name == 'nt':  # Windows
+                    subprocess.Popen(['explorer', folder_name])
+                else:  # macOS/Linux
+                    subprocess.Popen(['xdg-open', folder_name])
+                return f"Opened folder: {folder_name}"
+            except Exception as e:
+                return f"Found but couldn't open: {folder_name}"
+        
+        # If folder not found, list supported folders
+        supported_folders = ", ".join(expanded_paths.keys())
+        return f"Folder '{folder_name}' not supported. Try: {supported_folders}"
     
     def create_file(self, params: Dict[str, Any]) -> str:
         filename = params.get("filename", "new_file.txt")
@@ -247,8 +248,16 @@ class ActionExecutor:
     
     def search_web(self, params: Dict[str, Any]) -> str:
         query = params.get("query", "")
-        search_url = f"https://www.google.com/search?q={query.replace(' ', '+')}"
-        return self.web_controller.open_website(search_url)
+        if not query:
+            return "No search query specified"
+        
+        try:
+            import webbrowser
+            search_url = f"https://www.google.com/search?q={query.replace(' ', '+')}"
+            webbrowser.open_new(search_url)
+            return f"Searching for: {query}"
+        except Exception as e:
+            return f"Failed to perform web search: {str(e)}"
     
     def delete_folder(self, params: Dict[str, Any]) -> str:
         folder_name = params.get("folder", "")
@@ -313,7 +322,7 @@ class ActionExecutor:
             # Try to open Chrome first, then fall back to default browser
             chrome_path = self.config.get("application_paths", {}).get("chrome", "")
             if chrome_path and os.path.exists(chrome_path):
-                subprocess.Popen(chrome_path)
+                subprocess.Popen([chrome_path])
                 return "Opened Chrome browser"
             else:
                 # Open default browser
@@ -322,16 +331,3 @@ class ActionExecutor:
                 return "Opened default browser"
         except Exception as e:
             return f"Failed to open browser: {str(e)}"
-    
-    def search_web(self, params: Dict[str, Any]) -> str:
-        query = params.get("query", "")
-        if not query:
-            return "No search query specified"
-        
-        try:
-            import webbrowser
-            search_url = f"https://www.google.com/search?q={query.replace(' ', '+')}"
-            webbrowser.open_new(search_url)
-            return f"Searching for: {query}"
-        except Exception as e:
-            return f"Failed to perform web search: {str(e)}"
